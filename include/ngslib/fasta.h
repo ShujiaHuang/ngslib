@@ -7,8 +7,8 @@
 #include <iostream>
 #include <string>
 
-
 #include <htslib/faidx.h>
+
 
 namespace ngslib {
 

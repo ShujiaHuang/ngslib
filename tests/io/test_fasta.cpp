@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 
-#include "ngslib/fasta.h"
+#include <ngslib/fasta.h>
 
 int main() {
     using ngslib::Fasta;
