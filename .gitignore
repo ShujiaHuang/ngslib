@@ -6,7 +6,10 @@
 *.swp
 *.o
 *.d
+*.fai
+*.gzi
 *.gcno
+
 
 learn_from/
 build/
