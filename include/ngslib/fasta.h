@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <string>
+#include <map>
 
 
 #include <htslib/faidx.h>
@@ -22,6 +23,8 @@ namespace ngslib {
         std::string fname;
         faidx_t *fai;
 
+        std::map<std::string, std::string> _seq;
+
         // Load the FASTA indexed of reference sequence. The index file (.fai) will be build if
         // the reference file doesn't have one. The input file could be bgzip-compressed.
         void _load_data(const char *name);
@@ -32,7 +35,6 @@ namespace ngslib {
         Fasta() : fai(NULL) {}
         Fasta(const char *file_name) { this->_load_data(file_name); }
         Fasta(const std::string &file_name) { this->_load_data(file_name.c_str()); }
-
         Fasta(const Fasta &);  // copy constructor
 
         // Destroy the malloc'ed faidx_t index inside object
@@ -43,7 +45,7 @@ namespace ngslib {
         Fasta & operator=(const Fasta &s) { return *this = s.fname; }  // inline definition
 
         // Return the read-only sequence string of seq_id
-        std::string operator[](std::string seq_id) const;
+        std::string & operator[](std::string seq_id);
         friend std::ostream & operator<<(std::ostream & os, const Fasta & fa);
 
         // Query if sequence is present

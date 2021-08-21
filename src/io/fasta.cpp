@@ -22,11 +22,7 @@ namespace ngslib {
     }
 
     Fasta::Fasta(const Fasta &ft) {  // copy constructor
-        if (fai) {
-            fai_destroy(fai);
-        }
-
-        this->_load_data(ft.fname.c_str());   // re-open the FASTA file.
+        this->_load_data(ft.fname.c_str());   // re-load FASTA file.
     }
 
     Fasta & Fasta::operator=(const char *file_name) {
@@ -35,18 +31,20 @@ namespace ngslib {
             fai_destroy(fai);
         }
 
-        this->_load_data(file_name);
+        this->_load_data(file_name);  // re-load the file
         return *this;
     }
 
     // return the sequence string of seq_id
-    std::string Fasta::operator[](std::string seq_id) const {
+    std::string & Fasta::operator[](std::string seq_id) {
 
-        std::string seq;
-        if (has_seq(seq_id)) {
-            seq = fetch(seq_id);
+        std::map<std::string, std::string>::iterator it;
+        it = _seq.find(seq_id);
+        if (it == _seq.end()) {
+            _seq[seq_id] = fetch(seq_id);
         }
-        return seq;
+
+        return _seq[seq_id];
     }
 
     std::string Fasta::fetch(const char *chromosome,

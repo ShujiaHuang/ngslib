@@ -13,18 +13,20 @@ int main() {
     Fasta fa(fn);             // constructor function: `Fasta(const string file_name)`
     Fasta fa1(c_fn.c_str());  // constructor function: `Fasta(const char *file_name)`
     Fasta fa2 = fn;           // assignment function
-    Fasta fa3 = fa;
-    Fasta fa4;
-    fa4 = c_fn;
-    fa4 = fa;
+    Fasta fa3 = fa;           // copy constructor
+    Fasta fa_;                // default constructor function
+    Fasta fa4 = fa3;
 
+    Fasta fa5;
+    fa5 = c_fn;
+    fa5 = fa;
+    fa3 = fa5;                // assignment function
 
     std::cout << "***** start *****\n";
     std::cout << "The path of FASTA file0: " << fa0 << std::endl;
     std::cout << "The path of FASTA file1: " << fa  << std::endl;
     std::cout << "The path of FASTA file2: " << fa2 << std::endl;
     std::cout << "The path of FASTA file3: " << fa3 << std::endl;
-    std::cout << "The path of FASTA file4: " << fa4 << std::endl;
     std::cout << "fetch(\"ref1\", 0, 10) : " << fa.fetch("ref1", 0, 10)   << std::endl;
     std::cout << "fetch(\"ref1\", 10) :    " << fa.fetch("ref1", 10)      << std::endl;
     std::cout << "fetch(\"ref3\") :        " << fa.fetch("ref3")          << std::endl;
@@ -36,7 +38,6 @@ int main() {
     std::cout << "sequence_length(\"ref1\"): " << fa.seq_length("ref1") << std::endl;
     std::cout << "fa.has_seq(\"ref2\"): " << fa.has_seq("ref2") << std::endl;
     std::cout << "fa.has_seq(\"ref5\"): " << fa.has_seq("ref5") << std::endl;
-    std::cout << "fa[\"ref5\"]: " << fa["ref5"] << std::endl;
     std::cout << "fa[\"ref2\"]: " << fa["ref2"] << std::endl;
 //    std::cout << "The sequence: " << fa.fetch("ref1", 12, 10) << std::endl;
 
