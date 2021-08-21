@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 
+
 #include <htslib/faidx.h>
 
 
@@ -21,27 +22,40 @@ namespace ngslib {
         std::string fname;
         faidx_t *fai;
 
-        void _load_data(const char* name);
+        // Load the FASTA indexed of reference sequence. The index file (.fai) will be build if
+        // the reference file doesn't have one. The input file could be bgzip-compressed.
+        void _load_data(const char *name);
+        std::ostream & len_out(std::ostream & os) const;
 
     public:
         // default constructor
         Fasta() : fai(NULL) {}
         Fasta(const char *file_name) { this->_load_data(file_name); }
         Fasta(const std::string &file_name) { this->_load_data(file_name.c_str()); }
+
         Fasta(const Fasta &);  // copy constructor
 
         // Destroy the malloc'ed faidx_t index inside object
         ~Fasta() { if (fai) fai_destroy(fai); }
 
         Fasta & operator=(const char *s);
-        Fasta & operator=(const std::string & s) {
-            return *this = s.c_str();    // inline definition
-        }
-        Fasta & operator=(const Fasta &s) { return *this = s.fname; }
+        Fasta & operator=(const std::string & s) { return *this = s.c_str(); }  // inline definition
+        Fasta & operator=(const Fasta &s) { return *this = s.fname; }  // inline definition
+
+        // Return the read-only sequence string of seq_id
+        std::string operator[](std::string seq_id) const;
         friend std::ostream & operator<<(std::ostream & os, const Fasta & fa);
 
-        int sequence_length(const char *seq_id) const { return faidx_seq_len(fai, seq_id); }
-        int sequence_length(const std::string seq_id) const { return sequence_length(seq_id.c_str()); }
+        // Query if sequence is present
+        /* @param  fai  Pointer to the faidx_t struct
+         * @param  seq  Sequence name
+         * @return      1 if present or 0 if absent
+         */
+        bool has_seq(const std::string seq_id) const { return faidx_has_seq(fai, seq_id.c_str()); }
+
+        // Return sequence length, -1 if not present
+        int seq_length(const char *seq_id) const { return faidx_seq_len(fai, seq_id); }
+        int seq_length(const std::string seq_id) const { return seq_length(seq_id.c_str()); }
 
         /** fetch a string from the fasta sequence
          * @param chromosome name of the reference to query
@@ -57,10 +71,10 @@ namespace ngslib {
         }
 
         std::string fetch(const std::string & chromosome, const ulong start) const {
-            return fetch(chromosome, start, sequence_length(chromosome));
+            return fetch(chromosome, start, seq_length(chromosome));
         }
         std::string fetch(const std::string & chromosome) const {
-            return fetch(chromosome, 0, sequence_length(chromosome));
+            return fetch(chromosome, 0, seq_length(chromosome));
         }
     };  // class Fasta
 
