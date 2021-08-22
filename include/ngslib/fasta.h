@@ -44,7 +44,7 @@ namespace ngslib {
         Fasta & operator=(const std::string & s) { return *this = s.c_str(); }  // inline definition
         Fasta & operator=(const Fasta &s) { return *this = s.fname; }  // inline definition
 
-        // Return the read-only sequence string of seq_id
+        // Return the sequence string of seq_id
         std::string & operator[](std::string seq_id);
         friend std::ostream & operator<<(std::ostream & os, const Fasta & fa);
 
