@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 
+#include <htslib/hts.h>
 #include <ngslib/_bam_header.h>
 
 int main() {
@@ -14,10 +15,11 @@ int main() {
 
     BamHeader bh0;
     BamHeader bh1(fn1);
-    BamHeader bh2(fn2);
-    BamHeader bh3(bh2.h());
+    BamHeader bh2 = fn2;
 
-    BamHeader bh4 = bh2;
+    // sam_hdr_t assign to BamHeader.
+    BamHeader bh3(bh2.h());
+    BamHeader bh4;
     bh4 = bh3;
     bh4 = bh2.h();
 
@@ -39,6 +41,16 @@ int main() {
     std::cout << ">>> 6. The header of file: bh6\n"  << bh6 << "\n";
     std::cout << ">>> 7. The header of file: bh7\n"  << bh7 << "\n";
     std::cout << ">>> 8. The header of file: bh8\n"  << bh8 << "\n";
+
+    // samFile assign to BamHeader
+    samFile *fp = hts_open(fn1.c_str(), "r");
+    bh8 = fp;
+    BamHeader bh9(fp);
+    bh9 = fp;
+    std::cout << ">>> 9. The header of file: bh8\n"  << bh8  << "\n";
+    std::cout << ">>> 10. The header of file: bh9\n"  << bh9 << "\n";
+
+    sam_close(fp);
 
     return 0;
 }

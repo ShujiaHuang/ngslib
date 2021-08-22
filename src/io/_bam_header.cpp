@@ -16,6 +16,11 @@ namespace ngslib {
         _h = sam_hdr_read(fp);  // get a BAM header pointer on success, NULL on failure.
         sam_close(fp);
     }
+    BamHeader::BamHeader(samFile *fp) {
+        samFile *f = hts_open(fp->fn, "r");
+        _h = sam_hdr_read(f);
+        sam_close(f);
+    }
 
     BamHeader &BamHeader::operator=(const BamHeader &bh) {
 
@@ -24,6 +29,18 @@ namespace ngslib {
         }
 
         _h = sam_hdr_dup(bh._h);
+        return *this;
+    }
+
+    BamHeader &BamHeader::operator=(samFile *fp) {
+
+        if (_h) {
+            sam_hdr_destroy(_h);
+        }
+
+        samFile *f = hts_open(fp->fn, "r");
+        _h = sam_hdr_read(f);
+        sam_close(f);
         return *this;
     }
 
