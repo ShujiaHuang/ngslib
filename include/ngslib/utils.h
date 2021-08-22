@@ -5,8 +5,6 @@
 
 #include <string>
 #include <sstream>
-#include <unistd.h>
-
 
 namespace ngslib {
 
@@ -18,7 +16,13 @@ namespace ngslib {
         return ss.str();
     }
 
+    /** Check if a file is readable and exists.
+     * @param name Name of a file to test
+     * @return a bool type for file is readable and exists or not.
+     */
     bool is_readable(const char *name);
+    inline bool is_readable(const std::string &name) { return is_readable(name.c_str()); }
+
 }  // namespace ngslib
 
 #endif  // #ifndef __INCLUDE_NGSLIB_UTILS_H__
