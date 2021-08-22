@@ -15,11 +15,11 @@ int main() {
     BamHeader bh0;
     BamHeader bh1(fn1);
     BamHeader bh2(fn2);
-    BamHeader bh3(bh2.hdr());
+    BamHeader bh3(bh2.h());
 
     BamHeader bh4 = bh2;
     bh4 = bh3;
-    bh4 = bh2.hdr();
+    bh4 = bh2.h();
 
     // Test NULL to NULL
     BamHeader bh5;
