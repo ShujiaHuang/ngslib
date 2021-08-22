@@ -16,8 +16,6 @@ namespace ngslib {
     class Fasta {
 
     private:
-        typedef unsigned long ulong;
-
         std::string fname;
         faidx_t *fai;
 
@@ -72,13 +70,13 @@ namespace ngslib {
          * @exception Throws an invalid_argument if start > end, chromosome not found, or seq not found
          * @note This is currently NOT thread safe
          */
-        std::string fetch(const char *chromosome, const ulong start, const ulong end) const;
+        std::string fetch(const char *chromosome, const uint32_t start, const uint32_t end) const;
 
-        std::string fetch(const std::string &chromosome, const ulong start, const ulong end) const {
+        std::string fetch(const std::string &chromosome, const uint32_t start, const uint32_t end) const {
             return fetch(chromosome.c_str(), start, end);
         }
 
-        std::string fetch(const std::string &chromosome, const ulong start) const {
+        std::string fetch(const std::string &chromosome, const uint32_t start) const {
             return fetch(chromosome, start, seq_length(chromosome));
         }
 
