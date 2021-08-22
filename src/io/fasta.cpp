@@ -25,9 +25,8 @@ namespace ngslib {
         this->_load_data(ft.fname.c_str());   // re-load FASTA file.
     }
 
-    Fasta & Fasta::operator=(const char *file_name) {
+    Fasta &Fasta::operator=(const char *file_name) {
         if (fai) {
-            fname.clear();
             fai_destroy(fai);
         }
 
@@ -36,7 +35,7 @@ namespace ngslib {
     }
 
     // return the sequence string of seq_id
-    std::string & Fasta::operator[](std::string seq_id) {
+    std::string &Fasta::operator[](std::string seq_id) {
 
         std::map<std::string, std::string>::iterator it;
         it = _seq.find(seq_id);
@@ -74,7 +73,7 @@ namespace ngslib {
     }
 
     // Output the filename of FASTA
-    std::ostream & Fasta::len_out(std::ostream & os) const {
+    std::ostream &Fasta::len_out(std::ostream &os) const {
         if (fai) {
             os << "\nThe length information: \n";
 
@@ -89,7 +88,7 @@ namespace ngslib {
         return os;
     }
 
-    std::ostream & operator<<(std::ostream & os, const Fasta & fa) {
+    std::ostream &operator<<(std::ostream &os, const Fasta &fa) {
         os << fa.fname;
         fa.len_out(os);  // use private method for output
         return os;
