@@ -21,8 +21,8 @@ namespace ngslib {
 
         /*! `sam_hdr_t` is defined in htslib/sam.h. The data structure of `sam_hdr_t` is:
          *
-         * @typedef
          * @abstract Structure for the alignment header.
+         *
          * @field n_targets   number of reference sequences
          * @field l_text      length of the plain text in the header (may be zero if
          *                    the header has been edited)
@@ -40,12 +40,12 @@ namespace ngslib {
          instead of these fields.
          */
 
-        sam_hdr_t *h;   // `bam_hdr_t` is an alisa name of `sam_hdr_t`, so I keep using `sam_hdr_t`.
+        sam_hdr_t *_h;   // `bam_hdr_t` is an alisa name of `sam_hdr_t`, so I keep using `sam_hdr_t`.
 
     public:
 
         // Initializes a new empty BamHeader with no data.
-        BamHeader() : h(NULL) {}
+        BamHeader() : _h(NULL) {}
 
         /** Read the header from a BAM compressed file.
          *
@@ -58,11 +58,11 @@ namespace ngslib {
         BamHeader(const std::string &fn);
 
         // Create a new BamHeader from a raw htslib header, rarely use.
-        BamHeader(const sam_hdr_t *hdr) { h = sam_hdr_dup(hdr); }
+        BamHeader(const sam_hdr_t *hdr) { _h = sam_hdr_dup(hdr); }
 
-        BamHeader(const BamHeader &bh) { h = sam_hdr_dup(bh.h); }  // copy constructor
+        BamHeader(const BamHeader &bh) { _h = sam_hdr_dup(bh._h); }  // copy constructor
 
-        ~BamHeader() { if (h) sam_hdr_destroy(h); }
+        ~BamHeader() { if (_h) sam_hdr_destroy(_h); }
 
         BamHeader &operator=(const BamHeader &bh);
         BamHeader &operator=(const sam_hdr_t *hdr);
@@ -72,8 +72,8 @@ namespace ngslib {
 
         friend std::ostream &operator<<(std::ostream &os, const BamHeader &hd);
 
-        // Only for testing
-        const sam_hdr_t *hdr() const { return h; }
+        // return the `sam_hdr_t` pointer of BAM file header.
+        const sam_hdr_t *h() const { return _h; }
     };
 }
 

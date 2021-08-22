@@ -13,38 +13,38 @@ namespace ngslib {
         }
 
         samFile *fp = hts_open(fn.c_str(), "r");
-        h = sam_hdr_read(fp);  // get a BAM header pointer on success, NULL on failure.
+        _h = sam_hdr_read(fp);  // get a BAM header pointer on success, NULL on failure.
         sam_close(fp);
     }
 
     BamHeader &BamHeader::operator=(const BamHeader &bh) {
 
-        if (h) {
-            sam_hdr_destroy(h);
+        if (_h) {
+            sam_hdr_destroy(_h);
         }
 
-        h = sam_hdr_dup(bh.h);
+        _h = sam_hdr_dup(bh._h);
         return *this;
     }
 
     BamHeader &BamHeader::operator=(const sam_hdr_t *hdr) {
 
-        if (h) {
-            sam_hdr_destroy(h);
+        if (_h) {
+            sam_hdr_destroy(_h);
         }
 
-        h = sam_hdr_dup(hdr);
+        _h = sam_hdr_dup(hdr);
         return *this;
     }
 
     BamHeader &BamHeader::operator=(const char *fn) {
 
-        if (h) {
-            sam_hdr_destroy(h);
+        if (_h) {
+            sam_hdr_destroy(_h);
         }
 
         samFile *fp = hts_open(fn, "r");
-        h = sam_hdr_read(fp);  // get a BAM header pointer on success, NULL on failure.
+        _h = sam_hdr_read(fp);  // get a BAM header pointer on success, NULL on failure.
         sam_close(fp);
 
         return *this;
@@ -52,8 +52,8 @@ namespace ngslib {
 
     std::ostream &operator<<(std::ostream &os, const BamHeader &hd) {
 
-        if (hd.h)
-            os << sam_hdr_str(hd.h);
+        if (hd._h)
+            os << sam_hdr_str(hd._h);
 
         return os;
     }
