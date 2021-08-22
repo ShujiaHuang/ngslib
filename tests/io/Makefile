@@ -31,11 +31,10 @@ LIBS += -lzstd
 CXXFLAGS += -D__ZSTD__
 endif
 
-
 NGSLIB_SRC = ../../src
-CXXNGS = $(wildcard $(NGSLIB_SRC)/io/*.cpp)
-
+CXXNGS = $(wildcard $(NGSLIB_SRC)/*.cpp) $(wildcard $(NGSLIB_SRC)/io/*.cpp)
 CXXSRC = $(wildcard *.cpp)
+
 OBJ = $(CXXSRC:.cpp=.o) $(CXXNGS:.cpp=.o)
 
 
