@@ -47,8 +47,8 @@ namespace ngslib {
     }
 
     std::string Fasta::fetch(const char *chromosome,
-                             const ulong start,   // start: 0-base, end: 0-base.
-                             const ulong end) const {
+                             const uint32_t start,   // start: 0-base, end: 0-base.
+                             const uint32_t end) const {
 
         // check if we have loaded the fasta index
         if (!fai) throw std::invalid_argument("Fasta::fetch index not loaded");

@@ -1,3 +1,5 @@
+#include <unistd.h>
+
 #include "ngslib/utils.h"
 
 namespace ngslib {
