@@ -74,6 +74,12 @@ namespace ngslib {
 
         friend std::ostream &operator<<(std::ostream &os, const BamHeader &hd);
 
+        // Write BAM header to a BAM file.
+        int write(samFile *fp) {
+            // samFile is an alias of htsFile which define in sam.h by: `typedef htsFile samFile;`
+            return sam_hdr_write(fp, _h);
+        }
+
         // return the `sam_hdr_t` pointer of BAM file header.
         const sam_hdr_t *h() const { return _h; }
     };
