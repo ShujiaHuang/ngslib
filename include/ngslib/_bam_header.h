@@ -63,7 +63,7 @@ namespace ngslib {
 
         BamHeader(const BamHeader &bh) { _h = sam_hdr_dup(bh._h); }  // copy constructor
 
-        ~BamHeader() { if (_h) sam_hdr_destroy(_h); }
+        ~BamHeader() { sam_hdr_destroy(_h); }
 
         BamHeader &operator=(const BamHeader &bh);
         BamHeader &operator=(samFile *fp);
