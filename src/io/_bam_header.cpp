@@ -76,8 +76,4 @@ namespace ngslib {
         sam_hdr_destroy(_h);
         _h = NULL;
     }
-
-    BamHeader::operator bool() const {
-        return bool(_h != NULL);
-    }
 }  // namespace ngslib
