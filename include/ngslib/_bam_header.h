@@ -56,6 +56,7 @@ namespace ngslib {
          *
          */
         BamHeader(const std::string &fn);
+
         BamHeader(samFile *fp);
 
         // Create a new BamHeader from a raw htslib header, rarely use.
@@ -66,13 +67,23 @@ namespace ngslib {
         ~BamHeader() { sam_hdr_destroy(_h); }
 
         BamHeader &operator=(const BamHeader &bh);
+
         BamHeader &operator=(samFile *fp);
+
         BamHeader &operator=(const sam_hdr_t *hdr);
 
         BamHeader &operator=(const char *fn);
+
         BamHeader &operator=(const std::string &fn) { return *this = fn.c_str(); }
 
         friend std::ostream &operator<<(std::ostream &os, const BamHeader &hd);
+
+        void init() { if (_h) _h = sam_hdr_init(); }
+
+        // Free the memory of set Bam file header pointer to be NULL to save memory.
+        void destroy();
+
+        operator bool() const;
 
         // Write BAM header to a BAM file.
         int write(samFile *fp) {
@@ -81,7 +92,7 @@ namespace ngslib {
         }
 
         // return the `sam_hdr_t` pointer of BAM file header.
-        const sam_hdr_t *h() const { return _h; }
+        sam_hdr_t *h() const { return _h; }
     };
 }
 
