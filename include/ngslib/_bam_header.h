@@ -83,7 +83,8 @@ namespace ngslib {
         // Free the memory of set Bam file header pointer to be NULL to save memory.
         void destroy();
 
-        operator bool() const;
+        // conversion the Bamheader to be a bool type by determine the _h is NULL or nor.
+        operator bool() const { return bool(_h != NULL); }
 
         // Write BAM header to a BAM file.
         int write(samFile *fp) {
