@@ -1,7 +1,7 @@
 #include <stdexcept>
 
 #include <htslib/hts.h>
-#include "ngslib/_bam_header.h"
+#include "ngslib/bam_header.h"
 #include "ngslib/utils.h"
 
 namespace ngslib {
@@ -18,28 +18,14 @@ namespace ngslib {
     }
 
     BamHeader::BamHeader(samFile *fp) {
-        samFile *f = hts_open(fp->fn, "r");
-        _h = sam_hdr_read(f);
-        sam_close(f);
+        _h = sam_hdr_read(fp);
     }
 
     BamHeader &BamHeader::operator=(const BamHeader &bh) {
 
         // release _h pointer if _h is not NULL
         sam_hdr_destroy(_h);
-
         _h = sam_hdr_dup(bh._h);
-        return *this;
-    }
-
-    BamHeader &BamHeader::operator=(samFile *fp) {
-
-        // release _h pointer if _h is not NULL
-        sam_hdr_destroy(_h);
-
-        samFile *f = hts_open(fp->fn, "r");
-        _h = sam_hdr_read(f);
-        sam_close(f);
         return *this;
     }
 

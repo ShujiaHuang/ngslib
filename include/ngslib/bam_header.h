@@ -57,7 +57,7 @@ namespace ngslib {
          */
         BamHeader(const std::string &fn);
 
-        BamHeader(samFile *fp);
+        explicit BamHeader(samFile *fp);  // Only explicit conversions allowed.
 
         // Create a new BamHeader from a raw htslib header, rarely use.
         BamHeader(const sam_hdr_t *hdr) { _h = sam_hdr_dup(hdr); }
@@ -67,8 +67,6 @@ namespace ngslib {
         ~BamHeader() { sam_hdr_destroy(_h); }
 
         BamHeader &operator=(const BamHeader &bh);
-
-        BamHeader &operator=(samFile *fp);
 
         BamHeader &operator=(const sam_hdr_t *hdr);
 
