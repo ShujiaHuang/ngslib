@@ -76,7 +76,10 @@ namespace ngslib {
 
         friend std::ostream &operator<<(std::ostream &os, const BamHeader &hd);
 
-        void init() { if (_h) _h = sam_hdr_init(); }
+        void init() {
+            if (_h) destroy();
+            _h = sam_hdr_init();
+        }
 
         // Free the memory of set Bam file header pointer to be NULL to save memory.
         void destroy();

@@ -33,7 +33,6 @@ namespace ngslib {
 
         // release _h pointer if _h is not NULL
         sam_hdr_destroy(_h);
-
         _h = sam_hdr_dup(hdr);
         return *this;
     }
