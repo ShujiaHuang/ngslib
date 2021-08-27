@@ -104,10 +104,8 @@ namespace ngslib {
         int read(BamRecord &b);
 
         /// Create a SAM/BAM/CRAM iterator pointer (hts_itr_t*) for one region.
-        /** @param idx     Index
-            @param hdr     Header
-            @param region  Region specification
-            @return An iterator on success; NULL on failure
+        /** @param region  Region specification
+            @return 1 on success; 0 on failure
 
          Regions are parsed by hts_parse_reg(), and take one of the following forms:
 

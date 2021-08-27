@@ -72,7 +72,8 @@ namespace ngslib {
     }
 
     // set_itr_region 这个函数在使用多线程的时候会不会发生问题？
-    // 特别是类成员参数, _fp/_idx 在并行处理时是否存在问题?
+    // 特别是类成员参数, _fp/_idx 在并行处理时是否存在问题? (htslib/thread_pool.h 参考一下)
+    // 最好不要在一份文件中做多线程，而是以文件为单位跑多线程.
     // Create a SAM/BAM/CRAM iterator for one region.
     bool Bam::set_itr_region(const std::string &region) {
 
