@@ -66,9 +66,9 @@ namespace ngslib {
 
         ~BamHeader() { sam_hdr_destroy(_h); }
 
-        BamHeader &operator=(const BamHeader &bh);
-
         BamHeader &operator=(const sam_hdr_t *hdr);
+
+        BamHeader &operator=(const BamHeader &bh);
 
         BamHeader &operator=(const char *fn);
 
@@ -81,9 +81,8 @@ namespace ngslib {
             _h = sam_hdr_init();
         }
 
-        // Free the memory of set Bam file header pointer to be NULL to save memory.
+        // Free the memory and set Bam file header pointer to be NULL to save memory.
         void destroy();
-        void set_null() { return destroy(); }
 
         // conversion the Bamheader to be a bool type by determine the _h is NULL or nor.
         operator bool() const { return bool(_h != NULL); }

@@ -22,7 +22,6 @@ namespace ngslib {
 
         samFile *_fp;       // sam file pointer, samFile is as the same as htsFile in sam.h
         BamHeader _hdr;     // the sam/bam/cram header
-        // BamRecord _brc;     // the sam/bam/cram record (可以考虑不要添加这个类成员)
         hts_itr_t *_itr;    // a SAM/BAM/CRAM iterator for specify region
         hts_idx_t *_idx;  // BAM or CRAM index pointer.
 
@@ -61,11 +60,12 @@ namespace ngslib {
         */
         void _open(const char *fn, const char *mode);
 
-        Bam(const Bam &b) = delete;  // reject using copy constructor (C++11 style).
+        Bam(const Bam &b) = delete;             // reject using copy constructor (C++11 style).
         Bam &operator=(const Bam &b) = delete;  // reject using copy/assignment operator (C++11 style).
 
     public:
         Bam() : _fp(NULL), _itr(NULL), _idx(NULL), _io_status(-1) {}
+
         ~Bam();
 
         // @mode matching: [rwa]
@@ -79,7 +79,7 @@ namespace ngslib {
         // void set_header(const BamHeader &h) { _hdr = h; }
 
         // return the read-only BAM header
-        const BamHeader &header();  // return the Bam file header.
+        const BamHeader &header();
 
         /// Generate and save an index file
         /** @param fn        Input BAM/etc filename, to which .csi/etc will be added

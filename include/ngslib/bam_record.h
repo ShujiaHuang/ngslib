@@ -28,7 +28,6 @@ namespace ngslib {
 
         void init();
         void destroy();
-        void set_null() { return destroy(); }
 
         // return the bam record pointer.
         bam1_t *b() const { return _b; }

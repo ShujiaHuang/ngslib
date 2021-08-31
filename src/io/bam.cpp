@@ -65,21 +65,20 @@ namespace ngslib {
             _io_status = sam_read1(_fp, _hdr.h(), br.b());
         }
 
-        // set BamRecord to NULL if fail to read data
-        if (_io_status < 0) br.set_null();
+        // Destroy BamRecord and br to be NULL if fail to read data
+        if (_io_status < 0) br.destroy();
 
         return _io_status;
     }
 
     // set_itr_region 这个函数在使用多线程的时候会不会发生问题？
     // 特别是类成员参数, _fp/_idx 在并行处理时是否存在问题? (htslib/thread_pool.h 参考一下)
-    // 最好不要在一份文件中做多线程，而是以文件为单位跑多线程.
+    // 最好不要在一份文件中做多线程，而是以文件为单位跑多线程，从而在根上避免？
     // Create a SAM/BAM/CRAM iterator for one region.
     bool Bam::set_itr_region(const std::string &region) {
 
         if (!_idx) index_load();  // May not be thread safety?
         if (!_hdr) _hdr = BamHeader(_fp);  // If NULL, initial the BAM header by _fp
-
         if (_itr) sam_itr_destroy(_itr);
 
         // An iterator on success; NULL on failure
