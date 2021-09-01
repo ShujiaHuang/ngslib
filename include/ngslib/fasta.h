@@ -19,7 +19,7 @@ namespace ngslib {
         std::string fname;
         faidx_t *fai;
 
-        std::map <std::string, std::string> _seq;
+        std::map<std::string, std::string> _seq;
 
         // Load the FASTA indexed of reference sequence. The index file (.fai) will be build if
         // the reference file doesn't have one. The input file could be bgzip-compressed.
