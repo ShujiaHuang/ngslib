@@ -95,6 +95,16 @@ namespace ngslib {
 
         // return the `sam_hdr_t` pointer of BAM file header.
         sam_hdr_t *h() const { return _h; }
+
+        // Return the names of the reference sequences by the index of chromosome in header
+        // could just use c-style string: char*
+//        const char* ref_name(int i) const { return _h->target_name[i]; }
+        std::string seq_name(int i) const {
+            return std::string(_h->target_name[i]);
+        }
+
+        // Return a length of the reference sequences by the index of chromosome in header
+        int64_t seq_length(int i) const { return _h->target_len[i]; }
     };
 }
 
