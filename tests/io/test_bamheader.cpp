@@ -53,7 +53,9 @@ int main() {
     bh8.destroy();
     std::cout << ">>> 10. The header of file: bh9\n"  << bh9 << "\n";
 
-
+    std::cout << "bh9.ref_name(1): " << bh9.seq_name(0) << "; bh9.seq_length(1): " << bh9.seq_length(0) << "\n";
+    std::string ss = bh9.seq_name(0);
+    std::cout << "ss = bh9.seq_name(0): " << ss << "\n";
     sam_close(fp);
 
     return 0;
