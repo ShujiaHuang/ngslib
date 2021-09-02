@@ -33,13 +33,33 @@ namespace ngslib {
     class BamRecord {
 
     private:
-        bam1_t *_b;  // bam record
+        /// bam record, the most important member value of BamRecord
+        bam1_t *_b;
+
+        /** Define a structure for CIGAR op by type BAM_CIGAR_STR (MIDNSHP=XB)
+         * and length.
+         * @param op    CIGAR op (MIDNSHP=XB)
+         * @param len   CIGAR length
+         * */
+        typedef struct {
+            char op;
+            unsigned int len;
+        } CigarField;
+
+        // A pointer to CigarField array.
+        CigarField *_p_cigar_field;
+
+        // The number of CIGAR operator, which is the size of CigarField array.
+        unsigned int _n_cigar_op;
+
+        /* Make cigar field by CIGAR of this alignment */
+        void _make_cigar_field();
 
         /* get the max size of Op in cigar */
         unsigned int _max_cigar_Opsize(const char op) const;
 
     public:
-        BamRecord() : _b(NULL) {}  // initial to be NULL.
+        BamRecord();  // initial to be NULL.
         ~BamRecord() { destroy(); }
 
         BamRecord(const BamRecord &b);
@@ -54,13 +74,30 @@ namespace ngslib {
 
         void destroy();
 
-        // return the bam record pointer.
-        bam1_t *b() const { return _b; }
+        /// The two functions communicate with outside Bam file pointer, _b will be change in
+        /// these two function.
+
+        /// call the sam_read1() function in sam.h to load a record from a Bam file
+        /** @param fp   Pointer to the source file
+         *  @param h    Pointer to the header previously read (fully or partially)
+         *  @return >= 0 on successfully reading a new record, -1 on end of stream, < -1 on error
+         **/
+        int load_read(samFile *fp, sam_hdr_t *h);
+
+        /// call sam_itr_next() function in sam.h to get the next read from a SAM/BAM/CRAM iterator.
+        /**
+         * @param htsfp       Htsfile pointer for the input file
+         * @param itr         Iterator
+         * @return >= 0 on success; -1 when there is no more data; < -1 on error
+         **/
+        int next_read(samFile *fp, hts_itr_t *itr);
+
 
         // conversion function
         operator bool() const { return bool(_b != NULL); }
 
         friend std::ostream &operator<<(std::ostream &os, const BamRecord &b);
+
 
         /// Inline functions for dealing the FLAG of BAM alignment record
         /* The reads are Pair-end in sequencing, no matter whether it is mapped in a pair */
@@ -222,7 +259,7 @@ namespace ngslib {
          * @return quality scores after converting offset. If first char is empty, returns empty string.
          *
          * */
-        std::string query_qual(int offset=33) const;
+        std::string query_qual(int offset = 33) const;
 
         /* Calculate the mean sequencing quality of the whole read */
         double mean_qqual() const;

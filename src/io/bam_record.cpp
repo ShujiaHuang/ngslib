@@ -8,18 +8,26 @@
 
 namespace ngslib {
 
-    BamRecord::BamRecord(const BamRecord &b) {
+    // The default constructor
+    BamRecord::BamRecord() : _b(NULL), _p_cigar_field(NULL), _n_cigar_op(0) {}
+
+    // _p_cigar_field member should be initialization to a NULL pointer in constructor function.
+    BamRecord::BamRecord(const BamRecord &b) : _p_cigar_field(NULL), _n_cigar_op(0) {
         _b = bam_dup1(b._b);
+        this->_make_cigar_field();
     }
 
-    BamRecord::BamRecord(const bam1_t *b) {
+    BamRecord::BamRecord(const bam1_t *b) : _p_cigar_field(NULL) {
         _b = bam_dup1(b);
+        this->_make_cigar_field();
     }
 
     BamRecord &BamRecord::operator=(const BamRecord &b) {
 
         if (_b) bam_destroy1(_b);
         _b = bam_dup1(b._b);
+
+        this->_make_cigar_field();
         return *this;
     }
 
@@ -27,17 +35,87 @@ namespace ngslib {
 
         if (_b) bam_destroy1(_b);
         _b = bam_dup1(b);
+
+        this->_make_cigar_field();
         return *this;
+    }
+
+    void BamRecord::_make_cigar_field() {
+
+        if (_p_cigar_field)
+            delete[] _p_cigar_field;
+
+        if (!_b)
+            return;
+
+        _n_cigar_op = _b->core.n_cigar;
+        _p_cigar_field = new CigarField[_n_cigar_op];
+
+        if (!_p_cigar_field) {
+            throw std::invalid_argument("BamRecord::_make_cigar_field: Fail to "
+                                        "alloc memory space for CigarField.");
+        }
+
+        uint32_t *c = bam_get_cigar(_b);
+        for (size_t i = 0; i < _n_cigar_op; i++) {
+            _p_cigar_field[i].op = bam_cigar_opchr(c[i]);
+            _p_cigar_field[i].len = bam_cigar_oplen(c[i]);
+        }
+
+        return;
     }
 
     void BamRecord::init() {
         if (_b) destroy();
         _b = bam_init1();
+
+        if (_p_cigar_field) {
+            delete[] _p_cigar_field;
+        }
+
+        _n_cigar_op = 0;
+        _p_cigar_field = NULL;
     }
 
     void BamRecord::destroy() {
         bam_destroy1(_b);
         _b = NULL;
+
+        if (_p_cigar_field) {
+            delete[] _p_cigar_field;
+            _p_cigar_field = NULL;
+            _n_cigar_op = 0;
+        }
+    }
+
+    int BamRecord::load_read(samFile *fp, sam_hdr_t *h) {
+
+        if (!_b) this->init();
+        int io_status = sam_read1(fp, h, _b);
+
+        // Destroy BamRecord and set br to be NULL if fail to read data
+        if (io_status < 0) {
+            this->destroy();
+        } else {
+            _make_cigar_field();
+        }
+
+        return io_status;
+    }
+
+    int BamRecord::next_read(samFile *fp, hts_itr_t *itr) {
+
+        if (!_b) this->init();
+        int io_status = sam_itr_next(fp, itr, _b);
+
+        // Destroy BamRecord and set br to be NULL if fail to read data
+        if (io_status < 0) {
+            this->destroy();
+        } else {
+            _make_cigar_field();
+        }
+
+        return io_status;
     }
 
     std::ostream &operator<<(std::ostream &os, const BamRecord &r) {
@@ -63,11 +141,8 @@ namespace ngslib {
         if (!_b) return "*";  // empty
 
         std::stringstream cig;
-
-        uint32_t *c = bam_get_cigar(_b);
-        for (size_t i = 0; i < _b->core.n_cigar; ++i) {
-            // Fetch cigar type BAM_CIGAR_STR by and cigar len by bam_cigar_oplen()
-            cig << bam_cigar_oplen(c[i]) << BAM_CIGAR_STR[c[i] & BAM_CIGAR_MASK];
+        for (size_t i = 0; i < _n_cigar_op; ++i) {
+            cig << _p_cigar_field[i].len << _p_cigar_field[i].op;
         }
 
         return cig.str();
@@ -77,15 +152,14 @@ namespace ngslib {
 
         if (!_b) return 0;
 
-        int length = 0;
-        char cg;
-        uint32_t *c = bam_get_cigar(_b);
-        for (size_t i = 0; i < _b->core.n_cigar; ++i) {
-            cg = bam_cigar_opchr(c[i]);
-            if (cg == 'M' ||
-                cg == '=' ||
-                cg == 'X') {
-                length += bam_cigar_oplen(c[i]);
+        unsigned int length = 0;
+        char op;
+        for (size_t i = 0; i < _n_cigar_op; ++i) {
+            op = _p_cigar_field[i].op;
+            if (op == 'M' ||
+                op == '=' ||
+                op == 'X') {
+                length += _p_cigar_field[i].len;
             }
         }
 
@@ -97,10 +171,9 @@ namespace ngslib {
         if (!_b) return 0;
 
         unsigned int m_size = 0;
-        uint32_t *c = bam_get_cigar(_b);
-        for (size_t i = 0; i < _b->core.n_cigar; i++) {
-            if (bam_cigar_opchr(c[i]) == 'M')
-                m_size += bam_cigar_oplen(c[i]);
+        for (size_t i = 0; i < _n_cigar_op; i++) {
+            if (_p_cigar_field[i].op == 'M')
+                m_size += _p_cigar_field[i].len;
         }
 
         return m_size;
@@ -111,10 +184,9 @@ namespace ngslib {
         if (!_b) return 0;
 
         unsigned int max_size = 0;
-        uint32_t *c = bam_get_cigar(_b);
-        for (size_t i = 0; i < _b->core.n_cigar; i++) {
-            if (bam_cigar_opchr(c[i]) == op)
-                max_size = std::max(bam_cigar_oplen(c[i]), max_size);
+        for (size_t i = 0; i < _n_cigar_op; i++) {
+            if (_p_cigar_field[i].op == op)
+                max_size = std::max(_p_cigar_field[i].len, max_size);
         }
 
         return max_size;
@@ -138,7 +210,6 @@ namespace ngslib {
             seq[i] = _BASES[bam_seqi(p, i)];
 
         return seq;
-
     }
 
     std::string BamRecord::query_qual(int offset) const {
@@ -172,11 +243,10 @@ namespace ngslib {
 
         if (!_b) return -1;
 
-        uint32_t *c = bam_get_cigar(_b);
         int32_t p = 0;
-        for (size_t i = 0; i < _b->core.n_cigar; ++i) {
-            if (bam_cigar_opchr(c[i]) == 'S') {
-                p += bam_cigar_oplen(c[i]);
+        for (size_t i = 0; i < _n_cigar_op; ++i) {
+            if (_p_cigar_field[i].op == 'S') {
+                p += _p_cigar_field[i].len;
             } else {
                 break;
             }
@@ -188,13 +258,11 @@ namespace ngslib {
 
         if (!_b) return -1;
 
-        uint32_t *c = bam_get_cigar(_b);
         int32_t p = 0;
-
         // loop from the end
-        for (size_t i = _b->core.n_cigar - 1; i >= 0; --i) {
-            if (bam_cigar_opchr(c[i]) == 'S') {
-                p += bam_cigar_oplen(c[i]);
+        for (size_t i = _n_cigar_op - 1; i >= 0; --i) {
+            if (_p_cigar_field[i].op == 'S') {
+                p += _p_cigar_field[i].len;
             } else { // not a clip, stop counting
                 break;
             }
@@ -206,11 +274,10 @@ namespace ngslib {
 
         if (!_b) return -1;
 
-        uint32_t *c = bam_get_cigar(_b);
         int32_t p = 0;
-        for (int32_t i = _b->core.n_cigar - 1; i >= 0; --i) { // loop from the end
-            if (bam_cigar_opchr(c[i]) == 'S') {
-                p += bam_cigar_oplen(c[i]);
+        for (int32_t i = _n_cigar_op - 1; i >= 0; --i) { // loop from the end
+            if (_p_cigar_field[i].op == 'S') {
+                p += _p_cigar_field[i].len;
             } else { // not a clip, so stop counting
                 break;
             }
@@ -223,11 +290,10 @@ namespace ngslib {
 
         if (!_b) return -1;
 
-        uint32_t *c = bam_get_cigar(_b);
         int32_t p = 0;
-        for (size_t i = 0; i < _b->core.n_cigar; ++i) {
-            if (bam_cigar_opchr(c[i]) == 'S') {
-                p += bam_cigar_oplen(c[i]);
+        for (size_t i = 0; i < _n_cigar_op; ++i) {
+            if (_p_cigar_field[i].op == 'S') {
+                p += _p_cigar_field[i].len;
             } else { // not a clip, so stop counting
                 break;
             }
@@ -288,7 +354,7 @@ namespace ngslib {
         if (has_tag(tag)) {
 
             uint8_t *p = bam_aux_get(_b, tag.c_str());
-            if (*p == 'i' || *p == 'I' ||
+            if (*p == 'I' || *p == 'i' ||
                 *p == 'S' || *p == 's' ||
                 *p == 'C' || *p == 'c') {
 
