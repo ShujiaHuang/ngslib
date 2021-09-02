@@ -1,3 +1,5 @@
+# NGSlib: A C++ library for reading high-throughtput sequencing data base on htslib.
+
 ## 安装
 
 先手动安装好 htslib 再编译 ngslib
