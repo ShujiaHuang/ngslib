@@ -17,7 +17,7 @@ namespace ngslib {
         this->_make_cigar_field();
     }
 
-    BamRecord::BamRecord(const bam1_t *b) : _p_cigar_field(NULL) {
+    BamRecord::BamRecord(const bam1_t *b) : _p_cigar_field(NULL), _n_cigar_op(0) {
         _b = bam_dup1(b);
         this->_make_cigar_field();
     }
@@ -244,6 +244,7 @@ namespace ngslib {
         if (!_b) return -1;
 
         int32_t p = 0;
+        // loop to the end
         for (size_t i = 0; i < _n_cigar_op; ++i) {
             if (_p_cigar_field[i].op == 'S') {
                 p += _p_cigar_field[i].len;

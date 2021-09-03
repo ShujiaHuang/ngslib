@@ -30,8 +30,9 @@ int main() {
     BamRecord *br4;
 
     int read_count = 0;
-    while (sam_read1(fp, hdr.h(), br3.b()) > 0) {
+    while (br3.load_read(fp, hdr.h()) > 0) {
 
+//        std::cout << br3 << "; bool: " << bool(br3) << "\n";
         std::cout << " * Read count: " << ++read_count
 
                   << "; align_length: " << br3.align_length()
@@ -43,12 +44,12 @@ int main() {
                   << "; mean_qqual_phred: " << br3.mean_qqual()
                   << "; query_start_pos: " << br3.query_start_pos()
                   << "; query_start_pos_reverse: " << br3.query_start_pos_reverse()
-                << "; query_end_pos: " << br3.query_end_pos()
-                << "; query_end_pos_reverse: " << br3.query_end_pos_reverse()
-                << "; read_group: " << br3.read_group()
-                << "; get_tag(NM): " << br3.get_tag("NM")
-                << "; get_tag(MD): " << br3.get_tag("MD")
-                << "; get_tag(XT): " << br3.get_tag("XT")
+                  << "; query_end_pos: " << br3.query_end_pos()
+                  << "; query_end_pos_reverse: " << br3.query_end_pos_reverse()
+                  << "; read_group: " << br3.read_group()
+                  << "; get_tag(NM): " << br3.get_tag("NM")
+                  << "; get_tag(MD): " << br3.get_tag("MD")
+                  << "; get_tag(XT): " << br3.get_tag("XT")
 
                   << "; FLAG: " << br3.flag()
                   << "; target_id: " << br3.tid()
@@ -83,8 +84,6 @@ int main() {
     }
 
     br3.set_fail();
-    std::cout << "qc_fail after set fail: " << br3.qc_fail() << "\n";
-    std::cout << br3 << "\n";
 
     sam_close(fp);
     return 0;

@@ -76,15 +76,15 @@ namespace ngslib {
 
         /// The two functions communicate with outside Bam file pointer, _b will be change in
         /// these two function.
-
-        /// call the sam_read1() function in sam.h to load a record from a Bam file
+        // call sam_read1() function in sam.h to load a record from a Bam file.
         /** @param fp   Pointer to the source file
          *  @param h    Pointer to the header previously read (fully or partially)
          *  @return >= 0 on successfully reading a new record, -1 on end of stream, < -1 on error
          **/
         int load_read(samFile *fp, sam_hdr_t *h);
 
-        /// call sam_itr_next() function in sam.h to get the next read from a SAM/BAM/CRAM iterator.
+        // call sam_itr_next() function in sam.h to get the next read from a
+        // SAM/BAM/CRAM iterator.
         /**
          * @param htsfp       Htsfile pointer for the input file
          * @param itr         Iterator
@@ -122,7 +122,7 @@ namespace ngslib {
         bool is_mate_mapped_reverse() const { return _b && (_b->core.flag & BAM_FMREVERSE); }
 
         /*  The read is mapped in a proper pair */
-        bool is_proper_pair() const { return _b && (_b->core.flag & BAM_FPROPER_PAIR); }
+        bool is_proper_pair() const { return is_paired() && (_b->core.flag & BAM_FPROPER_PAIR); }
 
         /* The read is a secondary alignment (not primary) */
         bool is_secondary() const { return _b && (_b->core.flag & BAM_FSECONDARY); }
@@ -159,10 +159,10 @@ namespace ngslib {
 
         /* Get the alignment chromosome of mate read */
         std::string mate_tid_name(const BamHeader &hdr) const {
-            return is_paired() ? hdr.seq_name(_b->core.mtid) : "";
+            return _b ? hdr.seq_name(_b->core.mtid) : "";
         }
 
-        /// inline functions for the alignment reference information
+        /// functions for the alignment reference information
 
         /* Get the full alignment flag of this read */
         uint16_t flag() const { return _b->core.flag; }
@@ -224,7 +224,7 @@ namespace ngslib {
          *
          * BamTools reports AlignedBases, which for example returns the literal strings:
          * 3S5M - CTG
-         * 5M - CTAGC
+         * 5M -   CTAGC
          * 3M1D3M - ATG-TGA
          * 3M1I3M - ATGCTGA
          *
@@ -241,7 +241,7 @@ namespace ngslib {
         unsigned int max_deletion_size() const;
 
         /* Get insert size */
-        hts_pos_t insert_size() const { return is_mapped() ? _b->core.isize : 0; }
+        hts_pos_t insert_size() const { return is_paired() ? _b->core.isize : 0; }
 
         /// Functions for the alignment query information
         /* Get the qname of this read as a string */
