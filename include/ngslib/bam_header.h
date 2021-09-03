@@ -13,13 +13,13 @@
 
 namespace ngslib {
 
-    // Store a header to a BAM file, which also acts as a dictionary of
+    // Store the header of BAM file, which also acts as a dictionary of
     // reference sequences with names and lengths.
     class BamHeader {
 
     private:
 
-        /*! `sam_hdr_t` is defined in htslib/sam.h. The data structure of `sam_hdr_t` is:
+        /*! `sam_hdr_t` is defined in sam.h. The data structure of `sam_hdr_t` is:
          *
          * @abstract Structure for the alignment header.
          *
@@ -40,39 +40,33 @@ namespace ngslib {
          instead of these fields.
          */
 
-        sam_hdr_t *_h;   // `bam_hdr_t` is an alisa name of `sam_hdr_t`, so I keep using `sam_hdr_t`.
+        sam_hdr_t *_h;   // `bam_hdr_t` is an old name of `sam_hdr_t`, do not use it.
 
     public:
 
         // Initializes a new empty BamHeader with no data.
         BamHeader() : _h(NULL) {}
+        ~BamHeader() { destroy(); }
+
+        // Only explicit conversions allowed.
+        explicit BamHeader(samFile *fp);
 
         /** Read the header from a BAM compressed file.
-         *
-         * @param fp  File pointer
-         * @return    A valid pointer to new header on success, NULL on failure
-         *
          * This function works on SAM, BAM and CRAM files.
-         *
          */
         BamHeader(const std::string &fn);
 
-        explicit BamHeader(samFile *fp);  // Only explicit conversions allowed.
-
-        // Create a new BamHeader from a raw htslib header, rarely use.
+        // Create BamHeader from a exist header, rarely use.
         BamHeader(const sam_hdr_t *hdr) { _h = sam_hdr_dup(hdr); }
 
-        BamHeader(const BamHeader &bh) { _h = sam_hdr_dup(bh._h); }  // copy constructor
-
-        ~BamHeader() { sam_hdr_destroy(_h); }
+        // Copy constructor.
+        BamHeader(const BamHeader &bh) { _h = sam_hdr_dup(bh._h); }
 
         BamHeader &operator=(const sam_hdr_t *hdr);
 
         BamHeader &operator=(const BamHeader &bh);
 
-        BamHeader &operator=(const char *fn);
-
-        BamHeader &operator=(const std::string &fn) { return *this = fn.c_str(); }
+        BamHeader &operator=(const std::string &fn);
 
         friend std::ostream &operator<<(std::ostream &os, const BamHeader &hd);
 
@@ -84,26 +78,25 @@ namespace ngslib {
         // Free the memory and set Bam file header pointer to be NULL to save memory.
         void destroy();
 
-        // conversion the Bamheader to be a bool type by determine the _h is NULL or nor.
         operator bool() const { return bool(_h != NULL); }
 
         // Write BAM header to a BAM file.
         int write(samFile *fp) {
-            // samFile is an alias of htsFile which define in sam.h by: `typedef htsFile samFile;`
+            // samFile is an alias of htsFile which define in sam.h
             return sam_hdr_write(fp, _h);
         }
 
         // return the `sam_hdr_t` pointer of BAM file header.
         sam_hdr_t *h() const { return _h; }
 
-        // Return the names of the reference sequences by the index of chromosome in header
-        // could just use c-style string: char*
-//        const char* ref_name(int i) const { return _h->target_name[i]; }
+        // Return the names of the reference sequences by the index of chromosome
+        // in header.
         std::string seq_name(int i) const {
             return std::string(_h->target_name[i]);
         }
 
-        // Return a length of the reference sequences by the index of chromosome in header
+        // Return a length of the reference sequences by the index of chromosome
+        // in header.
         int64_t seq_length(int i) const { return _h->target_len[i]; }
     };
 }

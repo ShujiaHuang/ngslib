@@ -14,16 +14,14 @@
 
 namespace ngslib {
 
-    /*! BASES is defined according to information of bam_get_seq() in sam.h,
-     * detail for bam_get_seq() is bellow:
-     * @abstract  Get query sequence
-     * @param  b  pointer to an alignment
-     * @return    pointer to sequence
+    /*! _BASES is defined according to information of `bam_get_seq()` in sam.h,
+     *  detail for bam_get_seq() is bellow:
      *
-     * @discussion Each base is encoded in 4 bits: 1 for A, 2 for C, 4 for G,
-     * 8 for T and 15 for N. Two bases are packed in one byte with the base
-     * at the higher 4 bits having smaller coordinate on the read. It is
-     * recommended to use bam_seqi() macro to get the base.
+     *  @discussion Each base is encoded in 4 bits: 1 for A, 2 for C, 4 for G,
+     *  8 for T and 15 for N. Two bases are packed in one byte with the base
+     *  at the higher 4 bits having smaller coordinate on the read. It is
+     *  recommended to use bam_seqi() macro to get the base.
+     *
      **/
     static const char _BASES[16] = {' ', 'A', 'C', ' ',
                                     'G', ' ', ' ', ' ',
@@ -33,7 +31,7 @@ namespace ngslib {
     class BamRecord {
 
     private:
-        /// bam record, the most important member value of BamRecord
+        /// bam record, the most and only important member of BamRecord
         bam1_t *_b;
 
         /** Define a structure for CIGAR op by type BAM_CIGAR_STR (MIDNSHP=XB)
@@ -62,11 +60,10 @@ namespace ngslib {
         BamRecord();  // initial to be NULL.
         ~BamRecord() { destroy(); }
 
-        BamRecord(const BamRecord &b);
+        BamRecord(const BamRecord &b);  // copy constructor
+        BamRecord &operator=(const BamRecord &b);
 
         BamRecord(const bam1_t *b);
-
-        BamRecord &operator=(const BamRecord &b);
 
         BamRecord &operator=(const bam1_t *b);
 
@@ -74,33 +71,45 @@ namespace ngslib {
 
         void destroy();
 
-        /// The two functions communicate with outside Bam file pointer, _b will be change in
-        /// these two function.
-        // call sam_read1() function in sam.h to load a record from a Bam file.
-        /** @param fp   Pointer to the source file
+        /**************************
+         *** Exported functions ***
+         **************************/
+
+        /// The two TOP-level functions communicate with outside source file.
+        /// _b will be changed only in these two functions.
+
+        /** Call sam_read1() function of sam.h to load a record from file.
+         *
+         *  @param fp   Pointer to the source file
          *  @param h    Pointer to the header previously read (fully or partially)
-         *  @return >= 0 on successfully reading a new record, -1 on end of stream, < -1 on error
+         *  @return >= 0 on successfully reading a new record, -1 on end of
+         *  stream, < -1 on error.
+         *
          **/
         int load_read(samFile *fp, sam_hdr_t *h);
 
-        // call sam_itr_next() function in sam.h to get the next read from a
-        // SAM/BAM/CRAM iterator.
-        /**
-         * @param htsfp       Htsfile pointer for the input file
-         * @param itr         Iterator
-         * @return >= 0 on success; -1 when there is no more data; < -1 on error
+        /** Call sam_itr_next() function of sam.h to get iterator the next
+         *  read by a SAM/BAM/CRAM iterator.
+         *
+         *  @param fp       samFile pointer to the source file
+         *  @param itr      Iterator
+         *  @return >= 0 on success; -1 when there is no more data; < -1 on error.
+         *
          **/
         int next_read(samFile *fp, hts_itr_t *itr);
 
+        // -- END the two TOP level functions --
 
         // conversion function
         operator bool() const { return bool(_b != NULL); }
 
         friend std::ostream &operator<<(std::ostream &os, const BamRecord &b);
 
+        /// 12 inline functions for dealing with FLAG of BAM alignment record
 
-        /// Inline functions for dealing the FLAG of BAM alignment record
-        /* The reads are Pair-end in sequencing, no matter whether it is mapped in a pair */
+        /* Reads are Pair-end in sequencing, no matter whether it is
+         * mapped in a pair.
+         * */
         bool is_paired() const { return _b && (_b->core.flag & BAM_FPAIRED); }
 
         /* This is read1 */
@@ -112,142 +121,149 @@ namespace ngslib {
         /* The read itself is mapped */
         bool is_mapped() const { return _b && ((_b->core.flag & BAM_FUNMAP) == 0); }
 
-        /* The meta read is mapped */
-        bool is_mate_mapped() const { return _b && ((_b->core.flag & BAM_FMUNMAP) == 0); }
-
         /* The read is mapped to the reverse strand (-) */
-        bool is_mapped_reverse() const { return _b && (_b->core.flag & BAM_FREVERSE); }
+        bool is_mapped_reverse() const {
+            return is_mapped() && (_b->core.flag & BAM_FREVERSE);
+        }
+
+        /* The meta read is mapped */
+        bool is_mate_mapped() const {
+            return is_paired() && ((_b->core.flag & BAM_FMUNMAP) == 0);
+        }
 
         /* The mate read is mapped to the reverse strand (-) */
-        bool is_mate_mapped_reverse() const { return _b && (_b->core.flag & BAM_FMREVERSE); }
+        bool is_mate_mapped_reverse() const {
+            return is_mate_mapped() && (_b->core.flag & BAM_FMREVERSE);
+        }
 
         /*  The read is mapped in a proper pair */
-        bool is_proper_pair() const { return is_paired() && (_b->core.flag & BAM_FPROPER_PAIR); }
+        bool is_proper_pair() const {
+            return is_paired() && (_b->core.flag & BAM_FPROPER_PAIR);
+        }
 
         /* The read is a secondary alignment (not primary) */
-        bool is_secondary() const { return _b && (_b->core.flag & BAM_FSECONDARY); }
+        bool is_secondary() const {
+            return is_mapped() && (_b->core.flag & BAM_FSECONDARY);
+        }
 
         /* The mapped read is failed QC */
-        bool qc_fail() const { return _b && (_b->core.flag & BAM_FQCFAIL); }
+        bool is_qc_fail() const {
+            return is_mapped() && (_b->core.flag & BAM_FQCFAIL);
+        }
 
         /* The read is a duplicate */
-        bool is_duplicate() const { return _b && (_b->core.flag & BAM_FDUP); }
+        bool is_duplicate() const { return is_mapped() && (_b->core.flag & BAM_FDUP); }
 
         /* The read is a supplementary alignment */
-        bool is_supplementary() const { return _b && (_b->core.flag & BAM_FSUPPLEMENTARY); }
+        bool is_supplementary() const {
+            return is_mapped() && (_b->core.flag & BAM_FSUPPLEMENTARY);
+        }
 
         // -- End the FLAG inline functions --
 
-        /// functions for CIGAR field
-
-        // -- End the CIGAR functions --
-
-        /// functions need Bam header
-        // hts_pos_t is a alisa name of int64_t defined in sam.h.
-        hts_pos_t tid_length(const BamHeader &hdr) const {
-            return _b ? hdr.seq_length(_b->core.tid) : -1;
-        }
-
-        hts_pos_t mate_tid_length(const BamHeader &hdr) const {
-            return _b ? hdr.seq_length(_b->core.mtid) : -1;
-        }
+        /// Functions need input a Bam header
 
         /* Get the alignment chromosome of this read */
         std::string tid_name(const BamHeader &hdr) const {
-            return _b ? hdr.seq_name(_b->core.tid) : "";
+            return is_mapped() ? hdr.seq_name(_b->core.tid) : "";
+        }
+
+        // hts_pos_t is a alisa name of int64_t defined in hts.h.
+        hts_pos_t tid_length(const BamHeader &hdr) const {
+            return is_mapped() ? hdr.seq_length(_b->core.tid) : -1;
         }
 
         /* Get the alignment chromosome of mate read */
         std::string mate_tid_name(const BamHeader &hdr) const {
-            return _b ? hdr.seq_name(_b->core.mtid) : "";
+            return is_mate_mapped() ? hdr.seq_name(_b->core.mtid) : "";
         }
 
-        /// functions for the alignment reference information
+        hts_pos_t mate_tid_length(const BamHeader &hdr) const {
+            return is_mate_mapped() ? hdr.seq_length(_b->core.mtid) : -1;
+        }
+
+        /// Functions for alignment reference information.
 
         /* Get the full alignment flag of this read */
         uint16_t flag() const { return _b->core.flag; }
 
         /* Get the id of alignment chromosome, defined by sam_hdr_t */
-        // Use `target_name` in sam.h to get the name of chromosome.
-        int32_t tid() const { return _b ? _b->core.tid : -1; }
+        int32_t tid() const { return is_mapped() ? _b->core.tid : -1; }
 
-        /* chromosome ID of next read in template, defined by sam_hdr_t */
-        int32_t mate_tid() const { return _b ? _b->core.mtid : -2; }
+        /* chromosome ID of mate read in template, defined by sam_hdr_t */
+        int32_t mate_tid() const { return is_mate_mapped() ? _b->core.mtid : -1; }
 
         /* Get the alignment strand of this read, Should be one of '*', '-', '+' */
         char map_strand() const {
-            return _b ? (is_mapped_reverse() ? '-' : '+') : '*';
+            return is_mapped() ? (is_mapped_reverse() ? '-' : '+') : '*';
         }
 
         /* Get the alignment strand of mate read, Should be one of '*', '-', '+' */
         char mate_map_strand() const {
-            return _b ? (is_mate_mapped_reverse() ? '-' : '+') : '*';
+            return is_mate_mapped() ? (is_mate_mapped_reverse() ? '-' : '+') : '*';
         }
 
-        /* Get the begin mapped position on the reference genome, 0-based
-         * return the hts_pos_t on success, -1 on NULL.
+        /* Get begin mapped position on the reference genome, 0-based coordinate.
+         * @return  a hts_pos_t value on success, -1 on NULL.
          * */
         hts_pos_t reference_start_pos() const {
-            // Return the leftmost position of an alignment on the reference genome, 0-based
-            return _b ? _b->core.pos : -1;
+            // Return the leftmost position of an alignment on the reference
+            // genome, 0-based coordinate
+            return is_mapped() ? _b->core.pos : -1;
         }
 
         /* Get the end mapped position of the alignment on the reference.
-          Calculate the rightmost base position of an alignment on the reference genome.
-
-          @return  The coordinate of the first base after the alignment, 0-based.
-
-          For a mapped read, this is just b->core.pos + bam_cigar2rlen.
-          For an unmapped read (either according to its flags or if it has no cigar
-          string) or a read whose cigar string consumes no reference bases at all,
-          we return b->core.pos + 1 by convention.
+         * Calculate the rightmost base position of an alignment on the reference
+         * genome.
+         *
+         * @return  The coordinate of the first base after the alignment, 0-based.
+         *
+         * For a mapped read, this is just b->core.pos + bam_cigar2rlen.
+         * For an unmapped read (either according to its flags or if it has no cigar
+         * string) or a read whose cigar string consumes no reference bases at all,
+         * we return b->core.pos + 1 by convention.
          */
         hts_pos_t reference_end_pos() const {
-            return _b ? bam_endpos(_b) : -1;
+            return is_mapped() ? bam_endpos(_b) : -1;
         }
 
         /* Get the begin mapped position of mate on the reference genome, 0-based
-         * return the hts_pos_t on success, -1 on NULL.
+         * @return  a hts_pos_t value on success, -1 on NULL.
          * */
         hts_pos_t mate_reference_start_pos() const {
             // 0-based leftmost coordinate of next read in template
-            return _b ? _b->core.mpos : -1;
+            return is_mate_mapped() ? _b->core.mpos : -1;
         }
 
         /* Get mapping quality */
-        int mapq() const { return _b ? _b->core.qual : 0; }
+        int mapq() const { return is_mapped() ? _b->core.qual : 0; }
 
         /* convert CIGAR to a string */
         std::string cigar() const;
 
-        /** Return the number of "aligned bases" exclude the base mark as I, D, N, S, H, and P in CIGAR.
-         *
-         * BamTools reports AlignedBases, which for example returns the literal strings:
-         * 3S5M - CTG
-         * 5M -   CTAGC
-         * 3M1D3M - ATG-TGA
-         * 3M1I3M - ATGCTGA
-         *
+        /*
+         * Return the number of "aligned bases" exclude the base mark as I, D, N,
+         * S, H, and P in CIGAR.
          */
         unsigned int align_length() const;
 
-        /* Get the total number of matched base ('M') in this alignment */
-        unsigned int match_size() const;
+        /* Get the total number of matched base ('M') in this alignment. */
+        unsigned int match_length() const;
 
-        /* Get max insertion size of this alignment */
+        /* Get max insertion size of this alignment. */
         unsigned int max_insertion_size() const;
 
-        /* Get max deletion size of this alignment */
+        /* Get max deletion size of this alignment. */
         unsigned int max_deletion_size() const;
 
         /* Get insert size */
         hts_pos_t insert_size() const { return is_paired() ? _b->core.isize : 0; }
 
         /// Functions for the alignment query information
-        /* Get the qname of this read as a string */
+        /* Get the read ID as a string */
         std::string qname() const { return std::string(bam_get_qname(_b)); }
 
-        /* get the length of query sequence */
+        /* Get the length of read */
         int query_length() const { return _b ? _b->core.l_qseq : -1; }
 
         /* Retrieve the sequencing bases of this read as a string (ACTGN) */
@@ -256,7 +272,8 @@ namespace ngslib {
         /* Retrieve the sequencing qualities of this read as a string
          *
          * @param offset Encoding offset for Phred quality scores. Default 33
-         * @return quality scores after converting offset. If first char is empty, returns empty string.
+         * @return quality scores after converting offset. If first char is empty,
+         * returns empty string.
          *
          * */
         std::string query_qual(int offset = 33) const;
@@ -264,16 +281,18 @@ namespace ngslib {
         /* Calculate the mean sequencing quality of the whole read */
         double mean_qqual() const;
 
-        /* Get the alignment start position on this read, by removing soft-clips. 0-based coordinate
+        /* Get the alignment start position on this read, by removing soft-clips.
          *
          * @return 0-base position on the read on success, -1 on NULL.
          *
          * */
         int32_t query_start_pos() const;
 
-        /* Get the alignment start position on this read, by removing soft-clips. 0-based coordinate
+        /* Get the alignment start position on this read, by removing soft-clips.
+         *
          * Do it in the reverse orientation.
          * @return 0-base position on the read on success, -1 on NULL.
+         *
          * */
         int32_t query_start_pos_reverse() const;
 
@@ -336,12 +355,10 @@ namespace ngslib {
 
         /// Set data to the alignment to change the status of alignment record
         /* Set QC fail for this alignment read */
-        void set_fail() {
-            if (is_mapped())
-                _b->core.flag |= BAM_FQCFAIL;
-
-            return;
+        void set_qc_fail() {
+            if (is_mapped()) _b->core.flag |= BAM_FQCFAIL;
         }
+
     };  // class BamRecord
 
 }  // namespace ngslib
