@@ -13,30 +13,34 @@ int main() {
     using ngslib::BamHeader;
     using ngslib::BamRecord;
 
-    std::string fn2 = "../data/no_hdr_sq_1.bam";
     std::string fn1 = "../data/range.bam";
-    std::string fn3 = "../data/no_hdr_sq_1.expected.sam";
-    const char *fn4 = "../data/range.cram";
+    std::string fn2 = "../data/range.cram";
+    std::string fn3 = "../data/xx_MD.bam";
+    std::string fn4 = "../data/xx_minimal.sam";
 
-    samFile *fp = sam_open(fn1.c_str(), "r");
+    samFile *fp = sam_open(fn1.c_str(), "rb");
+//    samFile *fp = sam_open(fn2.c_str(), "rc");   // cram
+//    samFile *fp = sam_open(fn3.c_str(), "rb");   // bam
+//    samFile *fp = sam_open(fn4.c_str(), "r");    // sam
     BamHeader hdr = BamHeader(fp);
     bam1_t *al = bam_init1();
 
     BamRecord br0;
     BamRecord br1;
     BamRecord br2 = br1;
-    BamRecord br3 = al;
+    BamRecord br3;
     br3.init();
-    BamRecord *br4;
+    BamRecord br4 = al;
 
     int read_count = 0;
-    while (br3.load_read(fp, hdr.h()) > 0) {
+    std::cout << hdr << "\n";
+    while (br3.load_read(fp, hdr.h()) >= 0) {
 
-//        std::cout << br3 << "; bool: " << bool(br3) << "\n";
+        std::cout << br3 << "; bool: " << bool(br3) << "\n";
         std::cout << " * Read count: " << ++read_count
 
                   << "; align_length: " << br3.align_length()
-                  << "; match_size('M'): " << br3.match_size()
+                  << "; match_length('M'): " << br3.match_length()
                   << "; Read name: " << br3.qname()
                   << "; Read length: " << br3.query_length()
                   << "; query_sequence: " << br3.query_sequence()
@@ -52,6 +56,11 @@ int main() {
                   << "; get_tag(XT): " << br3.get_tag("XT")
 
                   << "; FLAG: " << br3.flag()
+                  << "; is_paired: " << br3.is_paired()
+                  << "; is_mapped: " << br3.is_mapped()
+                  << "; is_mate_mapped: " << br3.is_mate_mapped()
+                  << "; is_mapped_reverse: " << br3.is_mapped_reverse()
+                  << "; is_mate_mapped_reverse: " << br3.is_mate_mapped_reverse()
                   << "; target_id: " << br3.tid()
                   << "; mate_target_id: " << br3.mate_tid()
                   << "; tid_name: " << br3.tid_name(hdr)
@@ -66,16 +75,11 @@ int main() {
                   << "; mapping quality: " << br3.mapq()
 
                   << "; insert-size: " << br3.insert_size()
-                  << "; is_paired: " << br3.is_paired()
                   << "; is_read1: " << br3.is_read1()
                   << "; is_read2: " << br3.is_read2()
-                  << "; is_mapped: " << br3.is_mapped()
-                  << "; is_mate_mapped: " << br3.is_mate_mapped()
-                  << "; is_mapped_reverse: " << br3.is_mapped_reverse()
-                  << "; is_mate_mapped_reverse: " << br3.is_mate_mapped_reverse()
                   << "; is_proper_pair: " << br3.is_proper_pair()
                   << "; is_secondary: " << br3.is_secondary()
-                  << "; qc_fail: " << br3.qc_fail()
+                  << "; is_qc_fail: " << br3.is_qc_fail()
                   << "; is_duplicate: " << br3.is_duplicate()
                   << "; is_supplementary: " << br3.is_supplementary()
 
@@ -83,7 +87,7 @@ int main() {
                   << "; br0.is_mapped(): " << br0.is_mapped() << "\n";
     }
 
-    br3.set_fail();
+    br3.set_qc_fail();
 
     sam_close(fp);
     return 0;

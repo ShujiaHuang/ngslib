@@ -1,21 +1,38 @@
 # NGSlib: A C++ library for reading high-throughtput sequencing data base on htslib.
 
-## 安装
+## Installation
 
-先手动安装好 htslib 再编译 ngslib
+You should install htslib first, before you compile ngslib.
 
-如何安装 htslib
 
-1. cd htslib/htscodecs
-autoreconf -i
-./configure
-make
+### How to install htslib
 
-2. cd htslib
 
-autoreconf -i
-./configure
-make
+1. Shift to htscodecs directory and run the following commands: 
+
+```bash
+
+$ cd htslib/htscodecs
+$ autoreconf -i
+$ ./configure
+$ make
+
+```
+
+
+
+2. Go back to the upper directory and install main htslib by running the commands below:
+
+```bash
+
+$ cd htslib
+
+$ autoreconf -i
+$ ./configure
+$ make
+
+```
+
 
 
 

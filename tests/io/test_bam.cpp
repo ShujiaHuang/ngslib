@@ -11,10 +11,12 @@ void ret_br(ngslib::Bam &b) {
     // reading alignment record
     ngslib::BamRecord al;
     int read_count = 0;
-    while (b.read(al) != -1) {  // -1 => on end of the file.
+
+    // fetch alignments
+    while (b.next(al) >= 0) {  // -1 => on end of the file.
         ++read_count;
         std::cout << "* Read count: " << read_count
-                  << " ; Read status: " << b.io_status() << "\n";
+                  << " ; Read status: " << b.io_status() << "\n" << al << "\n";
     }
 }
 
@@ -22,9 +24,9 @@ int main() {
     using ngslib::Bam;
     using ngslib::BamRecord;
 
-    std::string fn1 = "../data/range.bam";
-    const char *fn2 = "../data/range.cram";
-    std::string fn3 = "../data/no_hdr_sq_1.expected.sam";
+    const char *fn1 = "../data/range.cram";
+    std::string fn2 = "../data/range.bam";
+    std::string fn3 = "../data/xx_minimal.sam";
 
     Bam b0;
     Bam b1(fn1, "r");
@@ -32,7 +34,9 @@ int main() {
     Bam *b3 = &b1;
 
     if (b1.index_build() == 0)
-        std::cout << "Successful generate BAI-format index for BAM files [default].\n";
+        std::cout << "Successful generate BAI-format index for BAM "
+                     "files [default].\n";
+
     // if (b1.index_build(1) == 0)
     //    std::cout << "Successful generate CSI-format index for BAM files.\n";
 
@@ -40,7 +44,6 @@ int main() {
     // b0 = b1;       // Not allow
     // b0 = fn1;      // Not allow
 
-    b1.index_load();
     std::cout << b1.header() << "\n";
     std::cout << ">>> 0. The file name is: " << b0 << "\n";
     std::cout << ">>> 1. The file name is: " << b1 << "\n";
@@ -50,34 +53,34 @@ int main() {
     std::cout << "\n** Loop all the data **\n";
     ret_br(b1);
 
-    bool good = true;
+    bool good;
     std::cout << "\n** Loop CHROMOSOME_IV the data **\n";
-    good = b1.set_itr_region("CHROMOSOME_IV");
+    good = b1.fetch("CHROMOSOME_IV");
     ret_br(b1);
     std::cout << "End loop status: " << good << "\n\n";
 
     std::cout << "\n** Loop CHROMOSOME_I the data **\n";
-    good = b1.set_itr_region("CHROMOSOME_I");
+    good = b1.fetch("CHROMOSOME_I");
     ret_br(b1);
     std::cout << "End loop status: " << good << "\n\n";
 
     std::cout << "\n** Loop CHROMOSOME_I:1-10 the data **\n";
-    good = b1.set_itr_region("CHROMOSOME_I:1-10");
+    good = b1.fetch("CHROMOSOME_I:1-10");
     ret_br(b1);
     std::cout << "End loop status: " << good << "\n\n";
 
     std::cout << "\n** Loop CHROMOSOME_I:914- the data **\n";
-    good = b1.set_itr_region("CHROMOSOME_I:914-");
+    good = b1.fetch("CHROMOSOME_I:914-");
     ret_br(b1);
     std::cout << "End loop status: " << good << "\n\n";
 
     std::cout << "\n** Loop CHROMOSOME_I:-934 the data **\n";
-    good = b1.set_itr_region("CHROMOSOME_I:-934");
+    good = b1.fetch("CHROMOSOME_I:-934");
     ret_br(b1);
     std::cout << "End loop status: " << good << "\n\n";
 
     std::cout << "\n** Loop CHROMOSOME_I:914-914 the data **\n";
-    good = b1.set_itr_region("CHROMOSOME_I:914-914");
+    good = b1.fetch("CHROMOSOME_I:914-914");
     ret_br(b1);
     std::cout << "End loop status: " << good << "\n\n";
 

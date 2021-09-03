@@ -7,18 +7,17 @@ int main() {
     using ngslib::Fasta;
 
     std::string fn = "../data/tinyfasta.fa";
-    std::string c_fn = "../data/tinyfasta2.fa.gz";
 
     Fasta fa0;                // default constructor function
     Fasta fa(fn);             // constructor function: `Fasta(const string file_name)`
-    Fasta fa1(c_fn.c_str());  // constructor function: `Fasta(const char *file_name)`
+    Fasta fa1(fn.c_str()); 
     Fasta fa2 = fn;           // assignment function
     Fasta fa3 = fa;           // copy constructor
     Fasta fa_;                // default constructor function
     Fasta fa4 = fa3;
 
     Fasta fa5;
-    fa5 = c_fn;
+    fa5 = fn;
     fa5 = fa;
     fa3 = fa5;                // assignment function
 
