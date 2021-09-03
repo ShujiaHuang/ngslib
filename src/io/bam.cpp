@@ -6,20 +6,21 @@
 
 namespace ngslib {
 
-    void Bam::_open(const char *fn, const char *mode) {
+    void Bam::_open(const std::string fn, const std::string mode) {
 
         _fp = NULL;
         _itr = NULL;
         _idx = NULL;
         _io_status = 0;  // Everything is OK by default.
-        fname = tostring(fn);
-        _mode = tostring(mode);
+
+        _fname = fn;
+        _mode = mode;
 
         if ((mode[0] == 'r') && (!is_readable(fn))) {
-            throw std::invalid_argument("[bam::Bam:_open] file not found - " + fname);
+            throw std::invalid_argument("[bam::Bam:_open] file not found - " + _fname);
         }
 
-        _fp = sam_open(fn, mode); // Open a Sam/Bam/Cram file
+        _fp = sam_open(fn.c_str(), mode.c_str()); // Open a Sam/Bam/Cram file
         if (!_fp) {
             throw std::invalid_argument("[bam::Bam:_open] file open failure.");
         }
@@ -45,61 +46,61 @@ namespace ngslib {
 
     void Bam::index_load() {
 
-        if (_idx) hts_idx_destroy(_idx);
-        _idx = sam_index_load(_fp, fname.c_str());
+        if (_idx)
+            hts_idx_destroy(_idx);
+
+        _idx = sam_index_load(_fp, _fname.c_str());
         if (!_idx) {
-            throw std::invalid_argument("[bam::Bam:index_load] Failed to load index BAM/CRAM "
-                                        "file or the index file is not available. Rebuild by "
-                                        "samtools index please.");
+            throw std::invalid_argument(
+                    "[bam::Bam:index_load] Failed to load index BAM/CRAM "
+                    "file or the index file is not available. Rebuild by "
+                    "samtools index please."
+            );
         }
     }
 
-    // 这个函数是否有线程问题，因为 br 并非局部变量，线程内数据变化，它也会变化？
-    int Bam::read(BamRecord &br) {
-        if (!_hdr.h()) _hdr = BamHeader(_fp);  // If NULL, inital the BAM header by _fp
-
-        br.init();
-        if (_itr) {
-            _io_status = sam_itr_next(_fp, _itr, br.b());
-        } else {
-            _io_status = sam_read1(_fp, _hdr.h(), br.b());
-        }
-
-        // Destroy BamRecord and br to be NULL if fail to read data
-        if (_io_status < 0) br.destroy();
-
-        return _io_status;
-    }
-
-    // set_itr_region 这个函数在使用多线程的时候会不会发生问题？
+    // fetch 这个函数在使用多线程的时候会不会发生问题？尝试多区间处理方式？
     // 特别是类成员参数, _fp/_idx 在并行处理时是否存在问题? (htslib/thread_pool.h 参考一下)
     // 最好不要在一份文件中做多线程，而是以文件为单位跑多线程，从而在根上避免？
     // Create a SAM/BAM/CRAM iterator for one region.
-    bool Bam::set_itr_region(const std::string &region) {
+    bool Bam::fetch(const std::string &region) {
 
         if (!_idx) index_load();  // May not be thread safety?
-        if (!_hdr) _hdr = BamHeader(_fp);  // If NULL, initial the BAM header by _fp
-        if (_itr) sam_itr_destroy(_itr);
+        if (!_hdr) _hdr = BamHeader(_fp);  // If NULL, set BAM header to _hdr.
 
-        // An iterator on success; NULL on failure
+        // Reset a iterator, An iterator on success; NULL on failure
+        if (_itr) sam_itr_destroy(_itr);
         _itr = sam_itr_querys(_idx, _hdr.h(), region.c_str());
+
         if (!_itr) {
-            throw std::invalid_argument("[bam::Bam:set_itr_region] Fail "
-                                        "to create iterator.");
+            throw std::invalid_argument("[bam::Bam:set_itr_region] Fail to fetch the "
+                                        "alignment data in region: " + region);
         }
 
         return _itr != NULL;
     }
 
-    int Bam::write(const BamRecord &br) {
-        _io_status = sam_write1(_fp, _hdr.h(), br.b());
+    int Bam::read(BamRecord &br) {
+
+        // If NULL, initial the BAM header by _fp.
+        if (!_hdr.h()) _hdr = BamHeader(_fp);
+
+        if (!_itr) {
+            _io_status = br.load_read(_fp, _hdr.h());
+        } else {
+            _io_status = br.next_read(_fp, _itr);
+        }
+
+        // Destroy BamRecord and set br to be NULL if fail to read data
+        if (_io_status < 0) br.destroy();
+
         return _io_status;
     }
 
     std::ostream &operator<<(std::ostream &os, const Bam &b) {
 
         if (b) {
-            os << b.fname;
+            os << b._fname;
         }
 
         return os;

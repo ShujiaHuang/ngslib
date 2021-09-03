@@ -16,14 +16,14 @@ namespace ngslib {
     // A Bam file I/O class
     class Bam {
     private:
-        std::string fname;  // input file name
-        std::string _mode;  // Mode matching / [rwa][bcefFguxz0-9]* /
-        int _io_status;     // I/O status code in read() and write() function
+        std::string _fname;  // input file name
+        std::string _mode;   // Mode matching / [rwa][bcefFguxz0-9]* /
+        int _io_status;      // I/O status code in read() and next() function
 
-        samFile *_fp;       // sam file pointer, samFile is as the same as htsFile in sam.h
-        BamHeader _hdr;     // the sam/bam/cram header
-        hts_itr_t *_itr;    // a SAM/BAM/CRAM iterator for specify region
-        hts_idx_t *_idx;  // BAM or CRAM index pointer.
+        samFile *_fp;        // samFile file pointer, samFile is as the same as htsFile in sam.h
+        BamHeader _hdr;      // The sam/bam/cram header.
+        hts_itr_t *_itr;     // A SAM/BAM/CRAM iterator for a specify region
+        hts_idx_t *_idx;     // BAM or CRAM index pointer.
 
         // call `hts_open` function to open file.
         /*!
@@ -58,7 +58,7 @@ namespace ngslib {
               [rw]z  .. compressed VCF
               [rw]   .. uncompressed VCF
         */
-        void _open(const char *fn, const char *mode);
+        void _open(const std::string fn, const std::string mode);
 
         Bam(const Bam &b) = delete;             // reject using copy constructor (C++11 style).
         Bam &operator=(const Bam &b) = delete;  // reject using copy/assignment operator (C++11 style).
@@ -66,17 +66,12 @@ namespace ngslib {
     public:
         Bam() : _fp(NULL), _itr(NULL), _idx(NULL), _io_status(-1) {}
 
-        ~Bam();
-
         // @mode matching: [rwa]
-        Bam(const char *fn, const char *mode) { _open(fn, mode); }
-
         Bam(const std::string &fn, const std::string mode) {
-            _open(fn.c_str(), mode.c_str());
+            _open(fn, mode);
         }
 
-        // set a new header from outside BamHeader
-        // void set_header(const BamHeader &h) { _hdr = h; }
+        ~Bam();
 
         // return the read-only BAM header
         const BamHeader &header();
@@ -89,19 +84,11 @@ namespace ngslib {
                      failed to create and/or save the index)
         */
         int index_build(int min_shift = 0) {
-            return sam_index_build(fname.c_str(), min_shift);
+            return sam_index_build(_fname.c_str(), min_shift);
         }
 
         // load index of BAM or CRAM
         void index_load();
-
-        /// call sam_read1 - Read a record from a file
-        /** @param fp   Pointer to the source file
-         *  @param h    Pointer to the header previously read (fully or partially)
-         *  @param b    Pointer to the record placeholder
-         *  @return >= 0 on successfully reading a new record, -1 on end of stream, < -1 on error
-         **/
-        int read(BamRecord &b);
 
         /// Create a SAM/BAM/CRAM iterator pointer (hts_itr_t*) for one region.
         /** @param region  Region specification
@@ -122,15 +109,16 @@ namespace ngslib {
          The form `REF:` should be used when the reference name itself contains a colon.
          Note that SAM files must be bgzf-compressed for iterators to work.
         **/
-        bool set_itr_region(const std::string &region);
+        bool fetch(const std::string &region);
 
-        /// call sam_write1 - Write a record to a file
-        /** @param fp    Pointer to the destination file
-         *  @param h     Pointer to the header structure previously read
-         *  @param b     Pointer to the record to be written
-         *  @return >= 0 on successfully writing the record, -1 on error
+        /// Read a record from a file
+        /** @param fp   Pointer to the source file
+         *  @param h    Pointer to the header previously read (fully or partially)
+         *  @param b    Pointer to the record placeholder
+         *  @return >= 0 on successfully reading a new record, -1 on end of stream, < -1 on error
          **/
-        int write(const BamRecord &b);
+        int read(BamRecord &b);
+        int next(BamRecord &b) { return read(b); }
 
         // For reading: >= 0 on successfully reading a new record,
         //              -1 on end of stream, < -1 on error;
@@ -140,7 +128,6 @@ namespace ngslib {
         operator bool() const { return _io_status >= 0; }
 
         friend std::ostream &operator<<(std::ostream &os, const Bam &b);
-
     };
 
 }  // namespace ngslib
