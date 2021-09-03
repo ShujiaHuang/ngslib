@@ -13,6 +13,7 @@
 *.gcno
 
 
+cmake-build-debug/
 learn_from/
 build/
 .DS_Store
