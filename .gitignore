@@ -7,6 +7,8 @@
 *.o
 *.d
 *.fai
+*.bai
+*.csi
 *.gzi
 *.gcno
 
