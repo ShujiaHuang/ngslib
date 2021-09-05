@@ -22,8 +22,8 @@ namespace ngslib {
 
         samFile *_fp;        // samFile file pointer, samFile is as the same as htsFile in sam.h
         BamHeader _hdr;      // The sam/bam/cram header.
-        hts_itr_t *_itr;     // A SAM/BAM/CRAM iterator for a specify region
         hts_idx_t *_idx;     // BAM or CRAM index pointer.
+        hts_itr_t *_itr;     // A SAM/BAM/CRAM iterator for a specify region
 
         // call `hts_open` function to open file.
         /*!

@@ -11,18 +11,18 @@ namespace ngslib {
         _fp = NULL;
         _itr = NULL;
         _idx = NULL;
-        _io_status = 0;  // Everything is OK by default.
 
         _fname = fn;
         _mode = mode;
+        _io_status = 0;  // Everything is OK by default.
 
         if ((mode[0] == 'r') && (!is_readable(fn))) {
-            throw std::invalid_argument("[bam::Bam:_open] file not found - " + _fname);
+            throw std::invalid_argument("[bam.cpp::Bam:_open] file not found - " + _fname);
         }
 
         _fp = sam_open(fn.c_str(), mode.c_str()); // Open a Sam/Bam/Cram file
         if (!_fp) {
-            throw std::invalid_argument("[bam::Bam:_open] file open failure.");
+            throw std::invalid_argument("[bam.cpp::Bam:_open] file open failure.");
         }
 
         return;
@@ -52,7 +52,7 @@ namespace ngslib {
         _idx = sam_index_load(_fp, _fname.c_str());
         if (!_idx) {
             throw std::invalid_argument(
-                    "[bam::Bam:index_load] Failed to load index BAM/CRAM "
+                    "[bam.cpp::Bam:index_load] Failed to load index BAM/CRAM "
                     "file or the index file is not available. Rebuild by "
                     "samtools index please."
             );
@@ -73,8 +73,8 @@ namespace ngslib {
         _itr = sam_itr_querys(_idx, _hdr.h(), region.c_str());
 
         if (!_itr) {
-            throw std::invalid_argument("[bam::Bam:set_itr_region] Fail to fetch the "
-                                        "alignment data in region: " + region);
+            throw std::invalid_argument("[bam.cpp::Bam:set_itr_region] Fail to fetch "
+                                        "the alignment data in region: " + region);
         }
 
         return _itr != NULL;
