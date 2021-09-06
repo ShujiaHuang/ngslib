@@ -54,7 +54,7 @@ namespace ngslib {
         /** Read the header from a BAM compressed file.
          * This function works on SAM, BAM and CRAM files.
          */
-        BamHeader(const std::string &fn);
+        explicit BamHeader(const std::string &fn);
 
         // Create BamHeader from a exist header, rarely use.
         BamHeader(const sam_hdr_t *hdr) { _h = sam_hdr_dup(hdr); }
@@ -65,8 +65,6 @@ namespace ngslib {
         BamHeader &operator=(const sam_hdr_t *hdr);
 
         BamHeader &operator=(const BamHeader &bh);
-
-        BamHeader &operator=(const std::string &fn);
 
         friend std::ostream &operator<<(std::ostream &os, const BamHeader &hd);
 

@@ -37,19 +37,6 @@ namespace ngslib {
         return *this;
     }
 
-    BamHeader &BamHeader::operator=(const std::string &fn) {
-
-        // release _h pointer if _h is not NULL
-        sam_hdr_destroy(_h);
-
-        samFile *fp = hts_open(fn.c_str(), "r");
-        // get a BAM header pointer on success, NULL on failure.
-        _h = sam_hdr_read(fp);
-        sam_close(fp);
-
-        return *this;
-    }
-
     std::ostream &operator<<(std::ostream &os, const BamHeader &hd) {
 
         if (hd._h)

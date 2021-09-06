@@ -14,7 +14,8 @@ int main() {
 
     BamHeader bh0;
     BamHeader bh1(fn1);
-    BamHeader bh2 = fn2;
+    // BamHeader bh2 = fn2; // Not allow
+    BamHeader bh2 = BamHeader(fn2); // Not allow
 
     // sam_hdr_t assign to BamHeader.
     BamHeader bh3(bh2.h());
@@ -28,7 +29,7 @@ int main() {
     bh6 = bh5;
 
     // bh7 and bh8 is equally.
-    BamHeader bh7 = fn3;
+    BamHeader bh7 = BamHeader(fn3);
     BamHeader bh8 = BamHeader(fn3);
 
     std::cout << ">>> The header of bh0 is NULL: " << bh0 << "\n";
