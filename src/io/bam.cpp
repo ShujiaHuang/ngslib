@@ -4,17 +4,13 @@
 #include "ngslib/bam.h"
 #include "ngslib/utils.h"
 
+
 namespace ngslib {
 
     void Bam::_open(const std::string fn, const std::string mode) {
 
-        _fp = NULL;
-        _itr = NULL;
-        _idx = NULL;
-
         _fname = fn;
         _mode = mode;
-        _io_status = 0;  // Everything is OK by default.
 
         if ((mode[0] == 'r') && (!is_readable(fn))) {
             throw std::invalid_argument("[bam.cpp::Bam:_open] file not found - " + _fname);
@@ -25,6 +21,7 @@ namespace ngslib {
             throw std::invalid_argument("[bam.cpp::Bam:_open] file open failure.");
         }
 
+        _io_status = 0;  // Everything is OK.
         return;
     }
 
@@ -37,17 +34,28 @@ namespace ngslib {
         _io_status = -1;
     }
 
-    const BamHeader &Bam::header() {
+    samFile *Bam::fp() const {
+        return _fp;
+    }
+
+    BamHeader &Bam::header() {
         if (!_hdr) {
             _hdr = BamHeader(_fp);  // call copy constructor of BamHeader.
         }
         return _hdr;
     }
 
+    hts_idx_t *Bam::idx() {
+        if (!_idx) {
+            this->index_load();
+        }
+        return _idx;
+    }
+
     void Bam::index_load() {
 
         if (_idx)
-            hts_idx_destroy(_idx);
+            return;
 
         _idx = sam_index_load(_fp, _fname.c_str());
         if (!_idx) {
@@ -73,13 +81,14 @@ namespace ngslib {
         _itr = sam_itr_querys(_idx, _hdr.h(), region.c_str());
 
         if (!_itr) {
-            throw std::invalid_argument("[bam.cpp::Bam:set_itr_region] Fail to fetch "
+            throw std::invalid_argument("[bam.cpp::Bam:fetch] Fail to fetch "
                                         "the alignment data in region: " + region);
         }
-
         return _itr != NULL;
     }
 
+    // 我应该用多个不同的 Record 去记录读取的信息，不同 record 共享一个 _fp 和 _itr
+    // 这样就可以解决线程中关于共享变量的问题了.
     int Bam::read(BamRecord &br) {
 
         // If NULL, initial the BAM header by _fp.
