@@ -14,10 +14,8 @@ $(info HTSSRC not defined, assuming systemwide installation)
 LIBS += -lhts
 endif
 
-
 NGSLIB = ../../include
 CPPFLAGS += -I"$(realpath $(NGSLIB))"
-
 
 #modied from htslib makefile
 FLAGS = -O3 -fPIC
@@ -38,18 +36,17 @@ CXXSRC = $(wildcard *.cpp)
 OBJ = $(CXXSRC:.cpp=.o) $(CXXNGS:.cpp=.o)
 
 
-PROGRAMS = testfasta
+PROGRAMS = test_fasta
 
 all: $(PROGRAMS)
 
-#-include $(OBJ:.o=.d)
 
 %.o: %.cpp
 	$(CXX) -c $(CXXFLAGS) $*.cpp
 
 
 $(PROGRAMS): $(OBJ)
-	$(CXX) $(FLAGS) -o testfasta *.o $(LIBS)
+	$(CXX) $(FLAGS) -o test_fasta *.o $(LIBS)
 
 clean:
 	rm -f *.o
