@@ -49,4 +49,15 @@ namespace ngslib {
         sam_hdr_destroy(_h);
         _h = NULL;
     }
+
+    int BamHeader::name2id(const std::string &name) {
+        int tid = sam_hdr_name2tid(_h, name.c_str());
+
+        if (tid < 0) {
+            throw std::invalid_argument(
+                    "[bam_header.cpp::BamHeader:name2id] Unknown reference name or "
+                    "the header not be parsed: " + name);
+        }
+        return tid;
+    }
 }  // namespace ngslib

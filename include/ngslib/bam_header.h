@@ -93,6 +93,18 @@ namespace ngslib {
             return std::string(_h->target_name[i]);
         }
 
+        /// Get the target id for a given reference sequence name
+        /*!
+         * @param ref  Reference name
+         * @return     Positive value on success,
+         *             -1 if unknown reference,
+         *             -2 if the header could not be parsed
+         *
+         * Looks up a reference sequence by name in the reference hash table
+         * and returns the numerical target id.
+         */
+        int name2id(const std::string &name);
+
         // Return a length of the reference sequences by the index of chromosome
         // in header.
         int64_t seq_length(int i) const { return _h->target_len[i]; }

@@ -58,6 +58,7 @@ int main() {
               << "; bh9.seq_length(1): " << bh9.seq_length(1) << "\n";
     std::string ss = bh9.seq_name(0);
     std::cout << "ss = bh9.seq_name(0): " << ss << "\n";
+    std::cout << "bh9.name2id(CHROMOSOME_III): " << bh9.name2id("CHROMOSOME_III") << "\n";
 
     sam_close(fp);
     return 0;
