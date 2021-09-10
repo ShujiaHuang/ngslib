@@ -87,6 +87,24 @@ namespace ngslib {
         return _itr != NULL;
     }
 
+    bool Bam::fetch(const std::string &seq_name, hts_pos_t beg, hts_pos_t end) {
+
+        if (!_idx) index_load();  // May not be thread safety?
+        if (!_hdr) _hdr = BamHeader(_fp);  // If NULL, set BAM header to _hdr.
+
+        // Reset a iterator, An iterator on success; NULL on failure
+        if (_itr) sam_itr_destroy(_itr);
+        _itr = sam_itr_queryi(_idx, _hdr.name2id(seq_name), beg, end);
+
+        if (!_itr) {
+            std::string region = seq_name + ":" + tostring(beg) + "-" + tostring(end);
+            throw std::invalid_argument("[bam.cpp::Bam:fetch] Fail to fetch the "
+                                        "alignment data in region: " + region);
+        }
+
+        return _itr != NULL;
+    }
+
     // 我应该用多个不同的 Record 去记录读取的信息，不同 record 共享一个 _fp 和 _itr
     // 这样就可以解决线程中关于共享变量的问题了.
     int Bam::read(BamRecord &br) {
