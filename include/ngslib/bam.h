@@ -114,6 +114,7 @@ namespace ngslib {
          Note that SAM files must be bgzf-compressed for iterators to work.
         **/
         bool fetch(const std::string &region);
+        bool fetch(const std::string &seq_id, hts_pos_t beg, hts_pos_t end);
 
         /// Read a record from a file
         /** @param fp   Pointer to the source file
