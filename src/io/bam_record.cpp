@@ -88,7 +88,7 @@ namespace ngslib {
         _b = NULL;
 
         if (_p_cigar_field) {
-            delete[] _p_cigar_field;
+            delete [] _p_cigar_field;
             _p_cigar_field = NULL;
             _n_cigar_op = 0;
         }
