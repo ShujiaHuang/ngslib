@@ -81,8 +81,8 @@ namespace ngslib {
         _itr = sam_itr_querys(_idx, _hdr.h(), region.c_str());
 
         if (!_itr) {
-            throw std::invalid_argument("[bam.cpp::Bam:fetch] Fail to fetch "
-                                        "the alignment data in region: " + region);
+            throw std::invalid_argument("[bam.cpp::Bam:fetch] Fail to fetch the "
+                                        "alignment data in : " + region);
         }
         return _itr != NULL;
     }
@@ -99,7 +99,7 @@ namespace ngslib {
         if (!_itr) {
             std::string region = seq_name + ":" + tostring(beg) + "-" + tostring(end);
             throw std::invalid_argument("[bam.cpp::Bam:fetch] Fail to fetch the "
-                                        "alignment data in region: " + region);
+                                        "alignment data in: " + region);
         }
 
         return _itr != NULL;
