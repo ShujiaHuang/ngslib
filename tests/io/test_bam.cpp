@@ -9,10 +9,10 @@
 void ret_br(ngslib::Bam &b) {
 
     // reading alignment record
-    ngslib::BamRecord al;
     int read_count = 0;
 
     // fetch alignments
+    ngslib::BamRecord al;
     while (b.next(al) >= 0) {  // -1 => on end of the file.
         ++read_count;
         std::cout << "* Read count: " << read_count
