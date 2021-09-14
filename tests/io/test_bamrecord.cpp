@@ -18,9 +18,9 @@ int main() {
     std::string fn3 = "../data/xx_MD.bam";
     std::string fn4 = "../data/xx_minimal.sam";
 
-    samFile *fp = sam_open(fn1.c_str(), "rb");
-//    samFile *fp = sam_open(fn2.c_str(), "rc");   // cram
-//    samFile *fp = sam_open(fn3.c_str(), "rb");   // bam
+//    samFile *fp = sam_open(fn1.c_str(), "r");
+    samFile *fp = sam_open(fn2.c_str(), "r");   // cram
+//    samFile *fp = sam_open(fn3.c_str(), "r");   // bam
 //    samFile *fp = sam_open(fn4.c_str(), "r");    // sam
     BamHeader hdr = BamHeader(fp);
     bam1_t *al = bam_init1();
